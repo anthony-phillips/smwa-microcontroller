@@ -7,6 +7,7 @@
 
 const char* WIFI_SSID     = "";
 const char* WIFI_PASS     = "";
+const int   MAX_CONN_ATT  = 1;
 const byte  SERVER_ADDR[] = {10, 0, 1, 26};
 const int   SERVER_PORT   = 5000;
 const int   POLL_PERIOD   = 4000;
@@ -30,8 +31,10 @@ void setup() {
   // Connect to WiFi
   Serial.println("Connecting to WiFi...");
   WiFi.begin(WIFI_SSID, WIFI_PASS);
-  
-  while (WiFi.status() != WL_CONNECTED) {
+
+  int connAttempts = 0;
+  while (connAttempts++ <= MAX_CONN_ATT &&
+         WiFi.status() != WL_CONNECTED) {
     delay(500);
   }
   
@@ -39,6 +42,7 @@ void setup() {
   Serial.println(WiFi.localIP());
   Serial.print("Gateway: ");
   Serial.println(WiFi.gatewayIP());
+  digitalWrite(LED, LED_OFF);
 }
 
 void blinkLED(int duration=500) {    
@@ -52,6 +56,8 @@ void loop() {
 
   // Read analog pin
   reading = analogRead(CT_PIN);
+  Serial.print("Analog reading: ");
+  Serial.println(String(reading));
  
   // Connect to the server using WiFi
   Serial.println("Connecting to server");
