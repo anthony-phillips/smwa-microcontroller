@@ -8,11 +8,21 @@
 const char* WIFI_SSID     = "";
 const char* WIFI_PASS     = "";
 const int   MAX_CONN_ATT  = 1;
+
 const byte  SERVER_ADDR[] = {10, 0, 1, 26};
 const int   SERVER_PORT   = 5000;
-const int   POLL_PERIOD   = 4000;
 
-int  reading = 0;
+const uint32_t  POLL_PERIOD = 4000;
+const uint16_t  N       = 750;
+const uint32_t  R_MAX   = 1024;
+const double    V_MAIN  = 0.485;
+const double    O_CT    = 21.0;
+const uint16_t  N_CT    = 1800;
+const double    V_DC    = 0.485;
+const double    R_SCALE = 2;
+
+double VCT_RIN[R_MAX];
+double VCT_RIN_2[R_MAX];
 
 void setup() {
   // Open serial port
@@ -20,6 +30,21 @@ void setup() {
   delay(100);
   Serial.println();
 
+  // Generate the lookup tables
+  uint32_t  dcOffset = R_MAX * V_DC;
+  double    rInRatio = R_SCALE / R_MAX;
+  for (int i=0; i < R_MAX; i++) {
+    double vCT = (i - dcOffset) * rInRatio;
+    VCT_RIN[i]   = vCT;
+    VCT_RIN_2[i] = vCT * vCT;
+
+    if (i%10 == 0){
+      Serial.print(vCT);
+    } else {
+      Serial.println(vCT);
+    }
+  }
+  
   // Enable LED pin
   pinMode(LED, OUTPUT);
   pinMode(CT_PIN, INPUT); // analog pin
@@ -50,12 +75,28 @@ void blinkLED(int duration=500) {
   delay(duration);
   digitalWrite(LED, LED_OFF);
 }
- 
+
+double getWMain() {
+  static double wVRatio = N_CT * V_MAIN / O_CT;
+  double vrms = 0;
+  double sigmaNSq = 0;
+
+  // Get values
+  for (int i=0; i < N; i++) {
+    sigmaNSq += VCT_RIN_2[analogRead(CT_PIN)];
+    //delay(5);
+  }
+
+  vrms = sqrt(sigmaNSq / N);
+
+  return vrms;
+}
+
 void loop() {
   delay(POLL_PERIOD);
 
   // Read analog pin
-  reading = analogRead(CT_PIN);
+  double reading = analogRead(CT_PIN);
   Serial.print("Analog reading: ");
   Serial.println(String(reading));
  
