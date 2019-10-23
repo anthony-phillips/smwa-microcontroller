@@ -31,17 +31,26 @@ void setup() {
   Serial.println();
 
   // Generate the lookup tables
-  uint32_t  dcOffset = R_MAX * V_DC;
-  double    rInRatio = R_SCALE / R_MAX;
+  int     dcOffset = R_MAX * V_DC;
+  double  rInRatio = R_SCALE / R_MAX;
+  
+  Serial.print("DC Offset: ");
+  Serial.println(dcOffset);
+  Serial.print("Scale: ");
+  Serial.println(rInRatio, 5);
+  Serial.print("Negative Double: ");
+  Serial.println(-3.14);
+  
   for (int i=0; i < R_MAX; i++) {
     double vCT = (i - dcOffset) * rInRatio;
     VCT_RIN[i]   = vCT;
     VCT_RIN_2[i] = vCT * vCT;
 
     if (i%10 == 0){
-      Serial.print(vCT);
+      Serial.println(vCT, 5);
     } else {
-      Serial.println(vCT);
+      Serial.print(vCT, 5);
+      Serial.print("   ");
     }
   }
   
@@ -81,15 +90,17 @@ double getWMain() {
   double vrms = 0;
   double sigmaNSq = 0;
 
+  digitalWrite(LED, LED_ON);
   // Get values
   for (int i=0; i < N; i++) {
     sigmaNSq += VCT_RIN_2[analogRead(CT_PIN)];
-    //delay(5);
+    delayMicroseconds(5); // Need to actually calculate this
   }
 
   vrms = sqrt(sigmaNSq / N);
 
-  return vrms;
+  digitalWrite(LED, LED_OFF);
+  return vrms * wVRatio;
 }
 
 void loop() {
