@@ -12,17 +12,17 @@ const int   MAX_CONN_ATT  = 1;
 const byte  SERVER_ADDR[] = {10, 0, 1, 26};
 const int   SERVER_PORT   = 5000;
 
-const uint32_t  POLL_PERIOD = 4000;
-const uint16_t  N       = 750;
-const uint32_t  R_MAX   = 1024;
-const double    V_MAIN  = 0.485;
-const double    O_CT    = 21.0;
-const uint16_t  N_CT    = 1800;
-const double    V_DC    = 0.485;
-const double    R_SCALE = 2;
+const uint32_t  POLL_PERIOD = 4000; // Time between polls
+const uint32_t  N       = 750;      // Number of samples
+const uint32_t  R_MAX   = 1024;     // ADC resolution
+const double    V_DC    = 0.485;    // Input DC offset
+const double    R_SCALE = 2;        // Input scale (Input/R_SCALE)
+const double    V_MAIN  = 120.0;    // Main RMS voltage
+const double    O_CT    = 21.0;     // CT burden resistance
+const uint32_t  N_CT    = 1800;     // CT ratio
 
-double VCT_RIN[R_MAX];
-double VCT_RIN_2[R_MAX];
+double VCT_RIN[R_MAX];    // Vct(Rin) (only for debugging)
+double VCT_RIN_2[R_MAX];  // Vct(Rin)^2
 
 void setup() {
   // Open serial port
@@ -30,17 +30,10 @@ void setup() {
   delay(100);
   Serial.println();
 
-  // Generate the lookup tables
+  // Generate lookup tables
   int     dcOffset = R_MAX * V_DC;
   double  rInRatio = R_SCALE / R_MAX;
-  
-  Serial.print("DC Offset: ");
-  Serial.println(dcOffset);
-  Serial.print("Scale: ");
-  Serial.println(rInRatio, 5);
-  Serial.print("Negative Double: ");
-  Serial.println(-3.14);
-  
+    
   for (int i=0; i < R_MAX; i++) {
     double vCT = (i - dcOffset) * rInRatio;
     VCT_RIN[i]   = vCT;
@@ -54,7 +47,7 @@ void setup() {
     }
   }
   
-  // Enable LED pin
+  // Configure pins
   pinMode(LED, OUTPUT);
   pinMode(CT_PIN, INPUT); // analog pin
 
@@ -94,12 +87,15 @@ double getWMain() {
   // Get values
   for (int i=0; i < N; i++) {
     sigmaNSq += VCT_RIN_2[analogRead(CT_PIN)];
-    delayMicroseconds(5); // Need to actually calculate this
+    delayMicroseconds(2); // Need to actually calculate this
   }
 
   vrms = sqrt(sigmaNSq / N);
 
+  Serial.print("Gateway: ");
+  Serial.println(vrms, 5);
   digitalWrite(LED, LED_OFF);
+  
   return vrms * wVRatio;
 }
 
