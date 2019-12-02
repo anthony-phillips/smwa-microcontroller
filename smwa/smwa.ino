@@ -5,12 +5,12 @@
 #define LED_OFF HIGH
 #define CT_PIN  A0
 
-const char* WIFI_SSID     = "";
-const char* WIFI_PASS     = "";
-const int   MAX_CONN_ATT  = 1;
+const char* WIFI_SSID     = "SMWA";
+const char* WIFI_PASS     = "pickle.fox.case";
+const int   MAX_CONN_ATT  = 1000;
 
-const byte  SERVER_ADDR[] = {10, 0, 1, 26};
-const int   SERVER_PORT   = 5000;
+const byte  SERVER_ADDR[] = {192, 168, 137, 50};
+const int   SERVER_PORT   = 80;
 
 const uint32_t  POLL_PERIOD = 4000; // Time between polls
 const uint32_t  N       = 750;      // Number of samples
