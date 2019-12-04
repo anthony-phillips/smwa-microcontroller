@@ -6,22 +6,21 @@
 #define CT_PIN  A0
 
 const char* WIFI_SSID     = "SMWA";
-const char* WIFI_PASS     = "pickle.fox.case";
+const char* WIFI_PASS     = "case.fox.pickle";
 const int   MAX_CONN_ATT  = 1000;
 
 const byte  SERVER_ADDR[] = {192, 168, 137, 50};
 const int   SERVER_PORT   = 80;
 
-const uint32_t  POLL_PERIOD = 4000; // Time between polls
-const uint32_t  N       = 750;      // Number of samples
+const uint32_t  POLL_PERIOD = 5000; // Time between polls
+const uint32_t  N       = 1000;     // Number of samples
 const uint32_t  R_MAX   = 1024;     // ADC resolution
-const double    V_DC    = 0.485;    // Input DC offset
-const double    R_SCALE = 2;        // Input scale (Input/R_SCALE)
+const double    V_DC    = 0.5;      // Input DC offset
+const double    R_SCALE = 1;        // Input scale (Input/R_SCALE)
 const double    V_MAIN  = 120.0;    // Main RMS voltage
 const double    O_CT    = 21.0;     // CT burden resistance
 const uint32_t  N_CT    = 1800;     // CT ratio
 
-double VCT_RIN[R_MAX];    // Vct(Rin) (only for debugging)
 double VCT_RIN_2[R_MAX];  // Vct(Rin)^2
 
 void setup() {
@@ -36,7 +35,6 @@ void setup() {
     
   for (int i=0; i < R_MAX; i++) {
     double vCT = (i - dcOffset) * rInRatio;
-    VCT_RIN[i]   = vCT;
     VCT_RIN_2[i] = vCT * vCT;
 
     if (i%10 == 0){
@@ -92,7 +90,7 @@ double getWMain() {
 
   vrms = sqrt(sigmaNSq / N);
 
-  Serial.print("Gateway: ");
+  Serial.print("Vrms: ");
   Serial.println(vrms, 5);
   digitalWrite(LED, LED_OFF);
   
@@ -103,15 +101,14 @@ void loop() {
   delay(POLL_PERIOD);
 
   // Read analog pin
-  double reading = analogRead(CT_PIN);
-  Serial.print("Analog reading: ");
+  double reading = getWMain();
+  Serial.print("Wmain: ");
   Serial.println(String(reading));
  
   // Connect to the server using WiFi
-  Serial.println("Connecting to server");
   WiFiClient client;
   if (!client.connect(SERVER_ADDR, SERVER_PORT)) {
-    Serial.println("Connection failed");
+    Serial.println("Server connection failed");
     return;
   }
   
@@ -121,9 +118,6 @@ void loop() {
   // Send request to server
   Serial.print("Requesting URL: ");
   Serial.println(url);
-  client.print(String("GET ") + url + " HTTP/1.1\r\n" +
+  client.print("GET " + url + " HTTP/1.1\r\n" +
                "Connection: close\r\n\r\n");
-  blinkLED(250);
-  
-  Serial.println("Closing connection");
 }
