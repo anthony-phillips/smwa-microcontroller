@@ -9,10 +9,10 @@ const char* WIFI_SSID     = "SMWA";
 const char* WIFI_PASS     = "case.fox.pickle";
 const int   MAX_CONN_ATT  = 1000;
 
-const byte  SERVER_ADDR[] = {192, 168, 137, 50};
+const byte  SERVER_ADDR[] = {192, 168, 137, 1};
 const int   SERVER_PORT   = 80;
 
-const uint32_t  POLL_PERIOD = 5000; // Time between polls
+const uint32_t  POLL_PERIOD = 1000; // Time between polls
 const uint32_t  N       = 1000;     // Number of samples
 const uint32_t  R_MAX   = 1024;     // ADC resolution
 const double    V_DC    = 0.5;      // Input DC offset
